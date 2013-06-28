@@ -16,7 +16,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 public class IndexMapper extends
 		Mapper<Object, Text, PairOfStrings,PairOfStringInt> {
 
-	//private static PairOfStrings bigram = new PairOfStrings();
+	private static PairOfStrings bigram = new PairOfStrings();
 	private static PairOfStrings ngram = new PairOfStrings();//shin: holds bi, tri, quad gram in LHS, RHS store as empty
 	private static PairOfStringInt indexitem = new PairOfStringInt(); //(docid,1); 1 is the count
 	private static int indexType ;
@@ -38,20 +38,23 @@ public class IndexMapper extends
 	protected void map(Object key, Text value, Context context)
 			throws IOException, InterruptedException {
 		// Using regular expression to tokenize sentences.
-		//String terms[] = value.toString().split("[^a-zA-Z0-9']");
+		String terms[] = value.toString().split("[^a-zA-Z0-9']");
 		
 		//split terms by white space
-		String terms[] = value.toString().split("\\s+");
+		//String terms[] = value.toString().split("\\s+");
 		
-		if (terms.length < 5) {//using 5 gram
+		if (terms.length < 4) {//using 5 gram
 			return;
 		}
 		int i = 0;
-		tf = Integer.parseInt(terms[terms.length]);//tf from 5gram used in sorting
+		tf = Integer.parseInt(terms[terms.length-1]);//tf from 5gram used in sorting
 		String bigram = terms[i] + " " + terms[i + 1];
 		String trigram = terms[i] + " " + terms[i + 1]+ " "+ terms[i + 2];
 		String quadgram = terms[i] + " " + terms[i + 1]+ " "+terms[i + 2]+" "+terms[i + 3];
-		if(indexType==0){
+		
+	
+		//F1 style
+		if(indexType==0){//shin: type bigram
 			indexitem.set(key.toString(),1);//key from mapper input
 			
 			//lots of network activity with this style
@@ -66,33 +69,35 @@ public class IndexMapper extends
 //			context.write(ngram, indexitem);
 			
 			// set (ngram, tf),key
-			ngram.set(bigram,terms[terms.length]);
+			ngram.set(bigram,terms[terms.length-1]);
 			context.write(ngram, indexitem);
 			
-			ngram.set(trigram,terms[terms.length]);
+			ngram.set(trigram,terms[terms.length-1]);
 			context.write(ngram, indexitem);
 			
-			ngram.set(quadgram,terms[terms.length]);
+			ngram.set(quadgram,terms[terms.length-1]);
 			context.write(ngram, indexitem);
 			
-		}else if(indexType == 1 ){
+		}else if(indexType == 1 ){//shin: type base
 			ngram.set("*", "*");
 			context.write(ngram, indexitem);
 //			ngram.set(terms[i], "*");
 //			context.write(ngram, indexitem);
 			
-			ngram.set(bigram,terms[terms.length]);
+			ngram.set(bigram,terms[terms.length-1]);
 			context.write(ngram, indexitem);
 			
-			ngram.set(trigram,terms[terms.length]);
+			ngram.set(trigram,terms[terms.length-1]);
 			context.write(ngram, indexitem);
 			
-			ngram.set(quadgram,terms[terms.length]);
+			ngram.set(quadgram,terms[terms.length-1]);
 			context.write(ngram, indexitem);
 			
-		}	
+		}//end else type base
+
 		
-/*		
+/*
+//F1		
 		while (i < terms.length - 2) {// -2 coz last token is tf, not needed for docs
 			if (terms[i].isEmpty()) { // skip the "" tokens
 				i++;
@@ -105,7 +110,7 @@ public class IndexMapper extends
 				if (j > terms.length - 1) {
 					return;
 				} else {
-					if(indexType==0){
+					if(indexType==0){//type bigram
 						indexitem.set(key.toString(),1);//key from mapper input
 						
 						//tx bi, tri, quad; lots of network activity
@@ -115,7 +120,7 @@ public class IndexMapper extends
 						ngram.set(terms[i], terms[j]);
 						// set docid
 						context.write(ngram, indexitem);
-					}else if(indexType == 1 ){
+					}else if(indexType == 1 ){//type base
 						ngram.set("*", "*");
 						context.write(ngram, indexitem);
 						ngram.set(terms[i], "*");

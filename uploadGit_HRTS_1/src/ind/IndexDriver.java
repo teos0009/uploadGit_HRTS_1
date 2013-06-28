@@ -10,11 +10,14 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
+import org.apache.hadoop.mapreduce.lib.input.KeyValueLineRecordReader;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.log4j.Logger;
-
-
 
 
 /**
@@ -46,17 +49,16 @@ public class IndexDriver {
 		job.setCombinerClass(IndexCombiner.class);
 		job.setMapOutputKeyClass(PairOfStrings.class);
 		job.setMapOutputValueClass(PairOfStringInt.class);
-		job.setInputFormatClass(KeyValueTextInputFormat.class);
+		//job.setInputFormatClass(KeyValueTextInputFormat.class);//shin: produce no o/p using text input
+		//job.setInputFormatClass(LineRecordReader.class);//method setInputFormatClass(Class<? extends InputFormat>) in the type Job is not applicable for the arguments (Class<LineRecordReader>)
+		//job.setInputFormatClass(KeyValueLineRecordReader.class);////method setInputFormatClass(Class<? extends InputFormat>) in the type Job is not applicable for the arguments
+		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputKeyClass(PairOfStrings.class);
 		job.setOutputValueClass(InvertedIndex.class);
-
-		
 		if (isSeq) {
-			job.setOutputFormatClass(SequenceFileOutputFormat.class);
+			//job.setOutputFormatClass(SequenceFileOutputFormat.class);//shin:seq file as output for subsequent MR job
+			job.setOutputFormatClass(TextOutputFormat.class);//shin: text for loading into redis
 		}
-
-		
-
 		FileInputFormat.addInputPath(job, new Path(conf.get("input")));
 		FileOutputFormat.setOutputPath(job, new Path(conf.get("output")));
 
@@ -79,13 +81,13 @@ public class IndexDriver {
 		}
 		Configuration p1conf = new Configuration();
 		p1conf.set("input", args[0]);
-		p1conf.set("output",args[1]+"/ngram");
+		p1conf.set("output",args[1]+"/gram");
 		p1conf.setInt("numReducers", Integer.parseInt(args[2]));
 		p1conf.setInt("indextype", InvertedIndex.TYPE_BIGRAM);//shin:obj from InvertedIndex.java
 
 		index(p1conf,true);
 		
-		//shin: not needed in this use case
+//		//shin: not needed in this use case
 //		Configuration p2conf = new Configuration();
 //		p2conf.set("input", args[0]);
 //		p2conf.set("output",args[1]+"/base");

@@ -65,6 +65,7 @@ public class IndexReducer extends
 					//indexitems.put(v.getLeftElement(), tf + v.getRightElement());
 				}
 				//termfreq += v.getRightElement();
+				termfreq = v.getRightElement();//shin: secondary sorting style
 
 			}//end for list of values
 
