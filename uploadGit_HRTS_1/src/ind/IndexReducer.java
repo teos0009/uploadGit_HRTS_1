@@ -37,6 +37,8 @@ public class IndexReducer extends
 	}
 
 	@Override
+	//key is (ngram string, tf), index is docid, count=1
+	//map reduce pattern used: secondary sorting style
 	protected void reduce(PairOfStrings key, Iterable<PairOfStringInt> value,
 			Context context) throws IOException, InterruptedException {
 		int termfreq = 0;
@@ -48,21 +50,23 @@ public class IndexReducer extends
 			invertedindex.setType(indexType);
 			// don't generate indexlist
 			invertedindex.setIndex(null);
-			context.write(key, invertedindex);
+			context.write(key, invertedindex);//shin: this case key is (ngram string, tf); no index
 
-		} else if(indexType == InvertedIndex.TYPE_BIGRAM){
+		} 
+		//build the inverted index for key is (ngram,tf), value is list of docid
+		else if(indexType == InvertedIndex.TYPE_BIGRAM){
 			Map<String, Integer> indexitems = new HashMap<String, Integer>();
 			for (PairOfStringInt v : value) {
-				if (!indexitems.containsKey(v.getLeftElement())) {
+				if (!indexitems.containsKey(v.getLeftElement())) {//shin: left is docid, right is count=1
 					indexitems.put(v.getLeftElement(), v.getRightElement());
 				} else {
-					int tf = indexitems.get(v.getLeftElement());
-					indexitems
-							.put(v.getLeftElement(), tf + v.getRightElement());
+					//shin: not needed for this use case
+					//int tf = indexitems.get(v.getLeftElement());
+					//indexitems.put(v.getLeftElement(), tf + v.getRightElement());
 				}
-				termfreq += v.getRightElement();
+				//termfreq += v.getRightElement();
 
-			}
+			}//end for list of values
 
 			invertedindex.setTermfreq(termfreq);
 			invertedindex.setType(indexType);

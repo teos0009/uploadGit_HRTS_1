@@ -23,8 +23,10 @@ import org.apache.log4j.Logger;
  *
  * The Driver of MapReduce to build inverted index.
  * There are two phases before the job finished 
- * Phase1 : Build inverted index for each unique bigram, 
- *          in which termfreq, docfreq and List of (docid.tf) is set,
+ * Phase1 : Build inverted index for each unique ngram from a 5gram;
+ * 			secondary sorted with tf of each 5gram via map reduce pattern,
+ * 			follow by list of docid in sorted order
+ *          //in which termfreq, docfreq and List of (docid.tf) is set,
  * Phase2 : Build bigram base count.
  */
 public class IndexDriver {
@@ -77,18 +79,19 @@ public class IndexDriver {
 		}
 		Configuration p1conf = new Configuration();
 		p1conf.set("input", args[0]);
-		p1conf.set("output",args[1]+"/bigram");
+		p1conf.set("output",args[1]+"/ngram");
 		p1conf.setInt("numReducers", Integer.parseInt(args[2]));
-		p1conf.setInt("indextype", InvertedIndex.TYPE_BIGRAM);
+		p1conf.setInt("indextype", InvertedIndex.TYPE_BIGRAM);//shin:obj from InvertedIndex.java
 
 		index(p1conf,true);
 		
-		Configuration p2conf = new Configuration();
-		p2conf.set("input", args[0]);
-		p2conf.set("output",args[1]+"/base");
-		p2conf.setInt("numReducers", Integer.parseInt(args[2]));
-		p2conf.setInt("indextype", InvertedIndex.TYPE_BASE);
-		index(p2conf,true);
+		//shin: not needed in this use case
+//		Configuration p2conf = new Configuration();
+//		p2conf.set("input", args[0]);
+//		p2conf.set("output",args[1]+"/base");
+//		p2conf.setInt("numReducers", Integer.parseInt(args[2]));
+//		p2conf.setInt("indextype", InvertedIndex.TYPE_BASE);
+//		index(p2conf,true);
 		
 	
 		
