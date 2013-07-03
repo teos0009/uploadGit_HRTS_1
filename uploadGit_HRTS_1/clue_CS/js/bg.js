@@ -3,6 +3,7 @@
 
 var seltext = null;
 var keypressText = null;
+var inTxt ="";
 
 chrome.extension.onRequest.addListener(function(request, sender, sendResponse)
 {
@@ -28,16 +29,31 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse)
 
 //test keypress handling
 //style2
-function rxKeyCode(keypressText) {
+function rxKeyCode(keypressText) {//accumulate the chars into string
 console.log("rxKeyCode");
   var kcode = keypressText
   if(kcode==32) {
 	console.log("You hit the SPACE key.");
+	inTxt = inTxt + "+";//add separator for subsequent bi/tri/quad gram
+	lookClue(inTxt);
   } else {
 	console.log("You hit OTHER key.");
+	inTxt = inTxt + keypressText;
+	console.log("inTxt= "+inTxt);
   }
 }//end rx key code
 
+function lookClue(inTxt){
+console.log("in look clue");
+console.log("find on clue= "+inTxt);
+//need to remove training space before query
+var anyC = "ANY";
+    chrome.tabs.create({ //open a new tab
+	url: "http://www.clueue.com/search/?q="+ inTxt + anyC,//phrase search
+    })
+
+
+}//end lookClue
 /*
 //style1: doesnt work
 document.addEventListener("keydown", keyDownTextField, false);

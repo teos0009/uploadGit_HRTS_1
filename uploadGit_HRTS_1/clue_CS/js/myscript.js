@@ -36,12 +36,14 @@ console.log("myscr inside keydown text field");
 //})
 
 
-
+/*
 //style2 works
 //console out= bg keydown1: my scr keydown: 32
 document.addEventListener('keydown',function(event)
 {
-    var sel = event.keyCode;
+    //var sel = event.keyCode;
+	
+	var sel = String.fromCharCode(event.keyCode);
 	
 	//console no display keycode
 	//var kcode = e.keyCode;
@@ -61,4 +63,24 @@ document.addEventListener('keydown',function(event)
 	},function(response){})
 
 });
+*/
+//style3: use keypress instead of keydown to get case sensitive ascii
+//works with seacrch box, but not on googld docs. GWDC has a way of dealing with it
+document.addEventListener('keypress',function(event)
+{    //var sel = event.keyCode;
+	//var sel = String.fromCharCode(event.keyCode);
+	var sel = event.keyCode;
+	if(sel==32){//need space bar, and also other punct marks to decide word boundary
+	sel = 32;
+	}
+   else{//punct marks handled in ascii with fromCharCode
+   sel = String.fromCharCode(event.keyCode);
+   }
+	//var sel = "my scr keydown: " + event.keyCode;//debug only
+	//send to bg.js to process
+	chrome.extension.sendRequest({
+	'message':'keydown1',
+	'data': sel
+	},function(response){})
 
+});
